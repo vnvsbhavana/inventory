@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Household Inventory</title>
+
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+    th { background: #f4f4f4; }
+    .low-stock { background-color: #ffe6e6; }
+    .btn { padding: 6px 10px; color: white; text-decoration: none; border-radius: 4px; }
+    .add { background: #28a745; }
+    .delete { background: #dc3545; }
+  </style>
+</head>
+
+<body>
+
+<h2>🏠 Household Inventory Management</h2>
+
+<h3>Add New Item</h3>
+<form action="/inventory/add" method="post">
+  Name: <input type="text" name="name" required><br><br>
+  Quantity: <input type="number" name="quantity" required><br><br>
+
+  Category:
+  <select name="category">
+    <option>Food</option>
+    <option>Grocery</option>
+    <option>Household</option>
+    <option>Electronics</option>
+  </select><br><br>
+
+  Price: <input type="number" step="0.01" name="price"><br><br>
+  Expiry Date: <input type="date" name="expiryDate"><br><br>
+
+  <button type="submit" class="btn add">Add Item</button>
+</form>
+
+<hr>
+
+<h3>Inventory List</h3>
+
+<table>
+  <tr>
+    <th>Status</th>
+    <th>Name</th>
+    <th>Quantity</th>
+    <th>Category</th>
+    <th>Price</th>
+    <th>Expiry</th>
+    <th>Action</th>
+  </tr>
+
+  <tr th:each="item : ${items}"
+      th:classappend="${item.lowStock} ? 'low-stock' : ''">
+
+    <td th:text="${item.lowStock} ? '⚠ Low' : 'OK'"></td>
+    <td th:text="${item.name}"></td>
+    <td th:text="${item.quantity}"></td>
+    <td th:text="${item.category}"></td>
+    <td th:text="${item.price}"></td>
+    <td th:text="${item.expiryDate}"></td>
+
+    <td>
+      <a th:href="@{/inventory/edit/{id}(id=${item.id})}">
+        <button>Edit</button>
+      </a>
+
+      <a th:href="@{/inventory/delete/{id}(id=${item.id})}">
+        <button style="background:red;color:white;">Delete</button>
+      </a>
+    </td>
+
+  </tr>
+</table>
+
+<br>
+<a href="/usage-history">📊 View Usage History</a><br><br>
+<a href="/logout">🚪 Logout</a>
+
+</body>
+</html>
