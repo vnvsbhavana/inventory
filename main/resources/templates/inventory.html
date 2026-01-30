@@ -4,25 +4,73 @@
   <title>Household Inventory</title>
 
   <style>
-    body { font-family: Arial; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .title { font-size: 28px; font-weight: bold; }
+
+    .welcome { font-size: 16px; font-weight: bold; }
+
+    h3 { margin-top: 10px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+
     th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-    th { background: #f4f4f4; }
+
+    th { background-color: #f4f4f4; }
+
     .low-stock { background-color: #ffe6e6; }
-    .btn { padding: 6px 10px; color: white; text-decoration: none; border-radius: 4px; }
-    .add { background: #28a745; }
-    .delete { background: #dc3545; }
+
+    .btn { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; }
+
+    .add { background: #28a745; color: white; }
+    .use { background: #17a2b8; color: white; }
+    .edit { background: #ffc107; }
+    .delete { background: #dc3545; color: white; }
+
+    .money { font-weight: bold; }
+
+    .currency {
+        font-weight: bold;
+        margin-right: 2px;
+    }
   </style>
 </head>
 
 <body>
 
-<h2>🏠 Household Inventory Management</h2>
+<!-- HEADER -->
+<div class="top-bar">
+  <div class="title">🏠 Household Inventory Management</div>
+  <div class="welcome">👋 Welcome, <span th:text="${username}">User</span></div>
+</div>
 
+<!-- TOTAL AMOUNT -->
+<h3>
+  💰 Total Amount:
+  <span class="currency">$</span>
+  <span class="money"
+        th:text="${#numbers.formatDecimal(totalAmount, 1, 'COMMA', 2, 'POINT')}">
+        0.00
+    </span>
+</h3>
+
+<hr>
+
+<!-- ADD ITEM -->
 <h3>Add New Item</h3>
+
 <form action="/inventory/add" method="post">
-  Name: <input type="text" name="name" required><br><br>
-  Quantity: <input type="number" name="quantity" required><br><br>
+  Name:
+  <input type="text" name="name" required>
+
+  Quantity:
+  <input type="number" name="quantity" required>
 
   Category:
   <select name="category">
@@ -30,27 +78,32 @@
     <option>Grocery</option>
     <option>Household</option>
     <option>Electronics</option>
-  </select><br><br>
+  </select>
 
-  Price: <input type="number" step="0.01" name="price"><br><br>
-  Expiry Date: <input type="date" name="expiryDate"><br><br>
+  Total Price ($):
+  <input type="number" step="0.01" name="price" required>
+
+  Expiry Date:
+  <input type="date" name="expiryDate">
 
   <button type="submit" class="btn add">Add Item</button>
 </form>
 
 <hr>
 
+<!-- INVENTORY TABLE -->
 <h3>Inventory List</h3>
 
 <table>
   <tr>
     <th>Status</th>
     <th>Name</th>
-    <th>Quantity</th>
+    <th>Qty</th>
     <th>Category</th>
-    <th>Price</th>
+    <th>Unit Price (Each)</th>
+    <th>Item Total</th>
     <th>Expiry</th>
-    <th>Action</th>
+    <th>Actions</th>
   </tr>
 
   <tr th:each="item : ${items}"
@@ -60,24 +113,41 @@
     <td th:text="${item.name}"></td>
     <td th:text="${item.quantity}"></td>
     <td th:text="${item.category}"></td>
-    <td th:text="${item.price}"></td>
+
+    <!-- UNIT PRICE -->
+    <td class="money">
+      <span class="currency">$</span>
+      <span th:text="${#numbers.formatDecimal(item.price / item.quantity, 1, 'COMMA', 2, 'POINT')}"></span>
+    </td>
+
+    <!-- ITEM TOTAL -->
+    <td class="money">
+      <span class="currency">$</span>
+      <span th:text="${#numbers.formatDecimal(item.price, 1, 'COMMA', 2, 'POINT')}"></span>
+    </td>
+
     <td th:text="${item.expiryDate}"></td>
 
     <td>
+      <form th:action="@{/inventory/use/{id}(id=${item.id})}"
+            method="post" style="display:inline;">
+        <input type="number" name="usedQuantity" min="1" style="width:60px;" required>
+        <button class="btn use">Use</button>
+      </form>
+
       <a th:href="@{/inventory/edit/{id}(id=${item.id})}">
-        <button>Edit</button>
+        <button type="button" class="btn edit">Edit</button>
       </a>
 
       <a th:href="@{/inventory/delete/{id}(id=${item.id})}">
-        <button style="background:red;color:white;">Delete</button>
+        <button type="button" class="btn delete">Delete</button>
       </a>
     </td>
-
   </tr>
 </table>
 
 <br>
-<a href="/usage-history">📊 View Usage History</a><br><br>
+<a href="/usage-history">📊 View Usage History</a> |
 <a href="/logout">🚪 Logout</a>
 
 </body>

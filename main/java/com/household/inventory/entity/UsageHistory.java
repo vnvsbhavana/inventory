@@ -54,5 +54,5 @@ public class UsageHistory {
     public void setUsedDate(LocalDate usedDate) {
         this.usedDate = usedDate;
     }
-// getters & setters
+
 }

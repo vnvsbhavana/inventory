@@ -1,33 +1,54 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Login</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
 
-<h2>User Login</h2>
+<body class="login-bg">
 
-<form th:action="@{/login}" method="post">
+<div class="container">
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Login to manage your inventory</p>
 
-    <label>Username:</label><br>
-    <input type="text" name="username" required><br><br>
+        <form th:action="@{/login}" method="post">
 
-    <label>Password:</label><br>
-    <input type="password" name="password" required><br><br>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text"
+                       name="username"
+                       placeholder="Enter your username"
+                       required>
+            </div>
 
-    <button type="submit">Login</button>
-</form>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password"
+                       name="password"
+                       placeholder="Enter your password"
+                       required>
+            </div>
 
-<p th:if="${param.error}" style="color:red;">
-    Invalid username or password
-</p>
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
 
-<p th:if="${param.logout}" style="color:green;">
-    You have been logged out
-</p>
+        <p th:if="${param.error}" class="error-text">
+            Invalid username or password
+        </p>
 
-<br>
-<a href="/register">Create New Account</a>
+        <p th:if="${param.logout}" class="success-text">
+            You have been logged out
+        </p>
+
+        <p class="footer-text">
+            Don’t have an account?
+            <a href="/register">Register</a>
+        </p>
+    </div>
+</div>
 
 </body>
 </html>

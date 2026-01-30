@@ -8,6 +8,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.security.Principal;
+import java.util.List;
+
 @Controller
 @RequestMapping("/inventory")
 public class InventoryItemController {
@@ -21,28 +26,42 @@ public class InventoryItemController {
         this.usageHistoryRepository = usageHistoryRepository;
     }
 
-    // SHOW INVENTORY PAGE
+    // ✅ SHOW INVENTORY PAGE + TOTAL AMOUNT + LOGGED-IN USERNAME
     @GetMapping
-    public String viewInventory(Model model) {
-        model.addAttribute("items", inventoryRepository.findAll());
+    public String viewInventory(Model model, Principal principal) {
+
+        List<InventoryItem> items = inventoryRepository.findAll();
+
+        BigDecimal totalAmount = items.stream()
+                .map(i -> BigDecimal.valueOf(i.getPrice())
+                        .multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        String username = (principal != null) ? principal.getName() : "User";
+
+        model.addAttribute("items", items);
+        model.addAttribute("totalAmount", totalAmount);
+        model.addAttribute("username", username);
+
         return "inventory";
     }
 
-    // ADD ITEM
+    // ✅ ADD ITEM
     @PostMapping("/add")
     public String addItem(@ModelAttribute InventoryItem item) {
         inventoryRepository.save(item);
         return "redirect:/inventory";
     }
 
-    // DELETE ITEM
+    // ✅ DELETE ITEM
     @GetMapping("/delete/{id}")
     public String deleteItem(@PathVariable Long id) {
         inventoryRepository.deleteById(id);
         return "redirect:/inventory";
     }
 
-    // SHOW EDIT PAGE
+    // ✅ SHOW EDIT PAGE
     @GetMapping("/edit/{id}")
     public String editItem(@PathVariable Long id, Model model) {
         InventoryItem item = inventoryRepository.findById(id).orElse(null);
@@ -53,7 +72,7 @@ public class InventoryItemController {
         return "edit-inventory";
     }
 
-    // UPDATE ITEM
+    // ✅ UPDATE ITEM
     @PostMapping("/update/{id}")
     public String updateItem(@PathVariable Long id,
                              @ModelAttribute InventoryItem updatedItem) {
@@ -73,25 +92,25 @@ public class InventoryItemController {
         return "redirect:/inventory";
     }
 
-    // USE ITEM + TRACK USAGE
+    // ✅ USE ITEM + TRACK USAGE
     @PostMapping("/use/{id}")
     public String useItem(@PathVariable Long id,
                           @RequestParam int usedQuantity) {
 
-        System.out.println("USED QTY = " + usedQuantity);
+        if (usedQuantity <= 0) {
+            return "redirect:/inventory";
+        }
 
-        InventoryItem item = inventoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+        InventoryItem item = inventoryRepository.findById(id).orElse(null);
+        if (item == null) {
+            return "redirect:/inventory";
+        }
 
-        item.setQuantity(item.getQuantity() - usedQuantity);
+        item.setQuantity(Math.max(item.getQuantity() - usedQuantity, 0));
         inventoryRepository.save(item);
 
-        UsageHistory history = new UsageHistory(item.getName(), usedQuantity);
-        usageHistoryRepository.save(history);
-
-        System.out.println("SAVED HISTORY FOR " + item.getName());
+        usageHistoryRepository.save(new UsageHistory(item.getName(), usedQuantity));
 
         return "redirect:/inventory";
     }
-
 }
